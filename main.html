@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text-to-Speech</title>
-    <style>
-        /* Add your CSS styles here */
-    </style>
+    <title>Text-to-Speech Application</title>
 </head>
 <body>
-    <h1>Text-to-Speech</h1>
-    <textarea id="text-input" rows="5"></textarea>
+    <h1>Text-to-Speech Application</h1>
+    <textarea id="text-input" rows="5" placeholder="Enter text here..."></textarea>
     <br>
     <select id="voice-select"></select>
     <br>
@@ -40,16 +37,14 @@
 
         function populateVoiceList() {
             voices = synth.getVoices();
-            for (let i = 0; i < voices.length; i++) {
+            voiceSelect.innerHTML = ''; // Clear existing options
+            voices.forEach((voice) => {
                 const option = document.createElement('option');
-                option.textContent = `${voices[i].name} (${voices[i].lang})`;
-                if (voices[i].default) {
-                    option.textContent += ' — DEFAULT';
-                }
-                option.setAttribute('data-lang', voices[i].lang);
-                option.setAttribute('data-name', voices[i].name);
+                option.textContent = `${voice.name} (${voice.lang})`;
+                option.setAttribute('data-lang', voice.lang);
+                option.setAttribute('data-name', voice.name);
                 voiceSelect.appendChild(option);
-            }
+            });
         }
 
         populateVoiceList();
@@ -59,42 +54,46 @@
 
         function speak() {
             if (synth.speaking) {
-                console.error('speechSynthesis.speaking');
+                console.error('SpeechSynthesis is already speaking.');
                 return;
             }
             if (textInput.value !== '') {
                 const utterance = new SpeechSynthesisUtterance(textInput.value);
-                utterance.onend = function(event) {
-                    console.log('SpeechSynthesisUtterance.onend');
+                utterance.onend = function() {
+                    console.log('Speech has finished.');
                 };
                 utterance.onerror = function(event) {
-                    console.error('SpeechSynthesisUtterance.onerror');
+                    console.error('Error occurred in speech synthesis: ', event.error);
                 };
+                
+                // Set selected voice
                 const selectedOption = voiceSelect.selectedOptions[0].getAttribute('data-name');
-                for (let i = 0; i < voices.length; i++) {
-                    if (voices[i].name === selectedOption) {
-                        utterance.voice = voices[i];
+                for (const voice of voices) {
+                    if (voice.name === selectedOption) {
+                        utterance.voice = voice;
                         break;
                     }
                 }
+                
+                // Set rate and pitch
                 utterance.rate = rateInput.value;
                 utterance.pitch = pitchInput.value;
+
                 synth.speak(utterance);
             }
         }
 
         startButton.addEventListener('click', speak);
-
         stopButton.addEventListener('click', () => {
-            synth.cancel();
+            synth.cancel(); // Stop speaking
         });
 
         rateInput.addEventListener('input', () => {
-            rateValue.textContent = rateInput.value;
+            rateValue.textContent = rateInput.value; // Update displayed rate value
         });
 
         pitchInput.addEventListener('input', () => {
-            pitchValue.textContent = pitchInput.value;
+            pitchValue.textContent = pitchInput.value; // Update displayed pitch value
         });
     </script>
 </body>
